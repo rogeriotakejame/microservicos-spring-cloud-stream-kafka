@@ -1,0 +1,19 @@
+{
+    "type": "record",
+    "name": "PaymentCreatedEvent",
+    "namespace": "br.takejame.ecommerce.payment.event",
+    "fields": [
+        {
+            "name": "checkoutCode",
+            "type": ["string"]
+        },
+        {
+            "name": "checkoutStatus",
+            "type": ["string"]
+        },
+        {
+            "name": "paymentCode",
+            "type": ["string"]
+        }
+    ]
+}
