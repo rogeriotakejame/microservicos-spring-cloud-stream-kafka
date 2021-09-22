@@ -7,7 +7,7 @@ Este projeto foi desenvolvido como parte das atividades do bootcamp Capgemini Fu
 O código gerado no Spring Initializr com a última versão estável do Spring Boot (2.5.4), do Spring Cloud Stream (3.1.3) e do Spring Cloud Stream Binder Kafka (3.1.3) não é compatível com o código apresentado ([https://github.com/hatanakadaniel/ecommerce-checkout-api](https://github.com/hatanakadaniel/ecommerce-checkout-api)) sendo necessário o downgrade para as versões apresentadas na aula.
 
 No build.gradle ao invés das configurações geradas no Spring Initializr:
-```
+```Gradle
 plugins {
     id 'org.springframework.boot' version '2.5.4'
 }
@@ -19,7 +19,7 @@ dependencies {
 }
 ```
 Foi usado:
-```
+```Gradle
 plugins {
 	id 'org.springframework.boot' version '2.3.1.RELEASE'
 }
@@ -34,19 +34,20 @@ dependencies {
 
 Para evitar o erro no final da aula, quando copiar o arquivo application.yml do checkout e colar em payment, não esqueça de alterar as seguintes linhas:
 
-<pre><code>bindings:
-	checkout-created-input:
-		destination: streaming.ecommerce.checkout.created
-		contentType: application/*+avro
-		group: ${spring.application.name}
-		consumer:
-			use-native-<u><b style="color:red">de</b></u>coding: true
-	payment-paid-output:
-		destination: streaming.ecommerce.payment.paid
-		contentType: application/*+avro
-		producer:
-			use-native-<u><b style="color:red">en</b></u>coding: true
-</code></pre>
+```YAML
+bindings:
+  checkout-created-input:
+    destination: streaming.ecommerce.checkout.created
+    contentType: application/*+avro
+    group: ${spring.application.name}
+    consumer:
+      use-native-decoding: true //***** ESTA LINHA *****
+  payment-paid-output:
+    destination: streaming.ecommerce.payment.paid
+    contentType: application/*+avro
+    producer:
+      use-native-encoding: true //***** E ESTA LINHA *****
+```
 
 Caso contrário recerá a seguinte mensagem de erro:
 
@@ -58,24 +59,27 @@ org.springframework.messaging.converter.MessageConversionException: Cannot conve
 O projeto originalmente previa o acesso à API através do método POST e com dados enviados através do body em formato JSON. Porém a tag Form do HTML não envia em formato JSON e sim em application/x-www-form-urlencoded. Portanto foi necessária a seguinte alteração no CheckoutResource.java:
 
 Ao invés de:
-<pre><code>public class CheckoutResource {
+```java
+public class CheckoutResource {
     
     private final CheckoutService checkoutService;
 
     @PostMapping("/")
-    public ResponseEntity<CheckoutResponse> create(<u style="color:red">@RequestBody</u> CheckoutRequest checkoutRequest){
+    public ResponseEntity<CheckoutResponse> create(@RequestBody CheckoutRequest checkoutRequest){
 		(...)
-</code></pre>
+```
 
 Foi usado:
-<pre><code>public class CheckoutResource {
+```java
+public class CheckoutResource {
     
     private final CheckoutService checkoutService;
 
-    @PostMapping(<u style="color:red">path = "/", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE}</u>)
+    @PostMapping(path = "/", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public ResponseEntity<CheckoutResponse> create(CheckoutRequest checkoutRequest){
 		(...)
-</code></pre>
+```
+
 ## Uso
 
 Para fazer uso dos microserviços é necessário subir o container no Docker. Na raiz do projeto execute:
