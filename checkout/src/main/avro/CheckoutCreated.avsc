@@ -3,13 +3,13 @@
     "name": "CheckoutCreatedEvent",
     "namespace": "br.takejame.ecommerce.checkout.event",
     "fields": [
-        {
+         {
             "name": "checkoutCode",
-            "type": ["string"]
+            "type": ["string", "null"]
         },
         {
             "name": "status",
-            "type": ["string"]
+            "type": ["string", "null"]
         }
     ]
 }

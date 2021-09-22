@@ -32,6 +32,50 @@ dependencies {
 ```
 
 
+Para evitar o erro no final da aula, quando copiar o arquivo application.yml do checkout e colar em payment, não esqueça de alterar as seguintes linhas:
+
+<pre><code>bindings:
+	checkout-created-input:
+		destination: streaming.ecommerce.checkout.created
+		contentType: application/*+avro
+		group: ${spring.application.name}
+		consumer:
+			use-native-<u><b style="color:red">de</b></u>coding: true
+	payment-paid-output:
+		destination: streaming.ecommerce.payment.paid
+		contentType: application/*+avro
+		producer:
+			use-native-<u><b style="color:red">en</b></u>coding: true
+</code></pre>
+
+Caso contrário recerá a seguinte mensagem de erro:
+
+```
+org.springframework.messaging.converter.MessageConversionException: Cannot convert from [org.apache.avro.generic.GenericData$Record] to [br.takejame.ecommerce.checkout.event.CheckoutCreatedEvent] for GenericMessage [payload=...
+```
+
+
+O projeto originalmente previa o acesso à API através do método POST e com dados enviados através do body em formato JSON. Porém a tag Form do HTML não envia em formato JSON e sim em application/x-www-form-urlencoded. Portanto foi necessária a seguinte alteração no CheckoutResource.java:
+
+Ao invés de:
+<pre><code>public class CheckoutResource {
+    
+    private final CheckoutService checkoutService;
+
+    @PostMapping("/")
+    public ResponseEntity<CheckoutResponse> create(<u style="color:red">@RequestBody</u> CheckoutRequest checkoutRequest){
+		(...)
+</code></pre>
+
+Foi usado:
+<pre><code>public class CheckoutResource {
+    
+    private final CheckoutService checkoutService;
+
+    @PostMapping(<u style="color:red">path = "/", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE}</u>)
+    public ResponseEntity<CheckoutResponse> create(CheckoutRequest checkoutRequest){
+		(...)
+</code></pre>
 ## Uso
 
 Para fazer uso dos microserviços é necessário subir o container no Docker. Na raiz do projeto execute:
@@ -42,39 +86,16 @@ docker-compose up -d
 
 Em seguida execute as aplicações CheckoutApplication e PaymentApplication.
 
-Quando todos os serviços estiverem iniciados, faça um POST request no seguinte endereço:
+Mude para a pasta checkout-frontend e suba o frontend com o comando:
 
 ```
-http://localhost:8085/v1/checkout/
+ng serve
 ```
 
-e com body no seguinte formato:
+Acesse o frontend através do endereço:
 
 ```
-{
-	"firstName":"John",
-	"lastName":"Doe",
-	"email":"john.doe@email.com",
-	"address":"Wall St.",
-	"complement":"1",
-	"country":"USA",
-	"state":"NY",
-	"cep":"12345",
-	"saveAddress":true,
-	"saveInfo":true,
-	"paymentMethod":"credit card",
-	"cardName":"Visa",
-	"cardNumber":"1234 5678 9012 3456",
-	"cardDate":"12/25",
-	"cardCvv":"123",
-	"products":[]
-}
+http://localhost:4200/
 ```
 
-Era esperada a geração do checkout code e a resposta de PaymentApplication, porém assim como no término da apresentação do projeto, a aplicação falha com a seguinte mensagem de erro:
-
-```
-org.springframework.messaging.converter.MessageConversionException: Cannot convert from [org.apache.avro.generic.GenericData$Record] to [br.takejame.ecommerce.checkout.event.CheckoutCreatedEvent] for GenericMessage [payload=...
-```
-
-Os próximos commits buscarão implementar o código não apresentado em aula e disponível no repositório do instrutor. ([https://github.com/hatanakadaniel/ecommerce-checkout-api](https://github.com/hatanakadaniel/ecommerce-checkout-api) e [https://github.com/hatanakadaniel/ecommerce-payment-api](https://github.com/hatanakadaniel/ecommerce-payment-api))
+Preencha os dados e clique em Comprar. A execução bem sucedida dos microserviços retornará o checkoutCode.

@@ -4,7 +4,7 @@ import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
 import br.takejame.ecommerce.checkout.entity.CheckoutEntity;
-import br.takejame.ecommerce.checkout.repository.CheckoutRepository;
+import br.takejame.ecommerce.checkout.service.CheckoutService;
 import br.takejame.ecommerce.checkout.streaming.PaymentPaidSink;
 import br.takejame.ecommerce.payment.event.PaymentCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PaymentPaidListener {
 
-    private final CheckoutRepository checkoutRepository;
+    private final CheckoutService checkoutService;
 
     @StreamListener(PaymentPaidSink.INPUT)
-    public void handler(PaymentCreatedEvent event){
-        final CheckoutEntity checkoutEntity = checkoutRepository.findByCode(event.getCheckoutCode().toString()).orElseThrow();
-        checkoutEntity.setStatus(CheckoutEntity.Status.APPROVED);
-        checkoutRepository.save(checkoutEntity);
+    public void handler(PaymentCreatedEvent paymentCreatedEvent){
+        checkoutService.updateStatus(paymentCreatedEvent.getCheckoutCode().toString(), CheckoutEntity.Status.APPROVED);
     }
 }

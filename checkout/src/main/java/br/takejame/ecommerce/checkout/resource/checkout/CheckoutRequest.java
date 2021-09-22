@@ -26,5 +26,5 @@ public class CheckoutRequest implements Serializable{
     private String cardNumber;
     private String cardDate;
     private String cardCvv;
-//    private List<String> products;
+    private List<String> products;
 }
